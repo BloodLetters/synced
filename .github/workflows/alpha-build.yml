@@ -1,0 +1,78 @@
+name: ALPHA Build
+
+on:
+  push:
+    branches: ["**"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build & Package Artifacts
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Setup Rust Cache
+        uses: Swatinem/rust-cache@v2
+
+      - name: Install WiX Toolset
+        run: |
+          dotnet tool install --global wix --version 4.0.5
+
+      - name: Run Workspace Tests
+        run: |
+          cargo test --workspace
+
+      - name: Build Release Binaries
+        run: |
+          cargo build --release
+
+      - name: Build MSI Installer
+        run: |
+          wix build -arch x64 installer/synced.wxs -o target/release/synceD-Setup.msi
+
+      - name: Package Distribution Assets
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist
+          Copy-Item target/release/synceD-Setup.msi -Destination dist/
+          Copy-Item target/release/synced-gui.exe -Destination dist/
+          Copy-Item target/release/synced-cli.exe -Destination dist/
+          Compress-Archive -Path extension/firefox/* -DestinationPath dist/synced-firefox-extension.zip -Force
+          Compress-Archive -Path extension/chrome/* -DestinationPath dist/synced-chrome-extension.zip -Force
+          Get-ChildItem dist
+
+      - name: Upload ALPHA Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: synceD-ALPHA-Build
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Update ALPHA Release
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        uses: softprops/action-gh-release@v2
+        continue-on-error: true
+        with:
+          tag_name: alpha-build
+          name: "synceD Alpha Build"
+          body: |
+            Automated ALPHA release generated from commit `${{ github.sha }}`.
+
+            ### Included Packages:
+            - **`synceD-Setup.msi`**: Complete Windows installer with uninstaller
+            - **`synced-gui.exe`**: Standalone GUI desktop application
+            - **`synced-cli.exe`**: Standalone command-line interface
+            - **`synced-firefox-extension.zip`**: Extension for Mozilla Firefox
+            - **`synced-chrome-extension.zip`**: Extension for Google Chrome
+          prerelease: true
+          files: dist/*

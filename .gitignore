@@ -1,0 +1,7 @@
+/target
+/dist
+.wix/
+*.msi
+*.wixpdb
+**/*.rs.bk
+*.pdb

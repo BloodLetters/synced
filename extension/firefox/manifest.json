@@ -1,0 +1,40 @@
+{
+  "manifest_version": 3,
+  "name": "synceD Downloader Integration",
+  "version": "1.0.0",
+  "description": "Intercept downloads in Firefox and transfer them directly to synceD download manager.",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "synced-downloader@local.antigravity",
+      "strict_min_version": "109.0"
+    }
+  },
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "permissions": [
+    "downloads",
+    "storage",
+    "menus",
+    "notifications"
+  ],
+  "host_permissions": [
+    "http://127.0.0.1/*",
+    "http://localhost/*"
+  ],
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_title": "synceD Downloader",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png",
+      "48": "icons/icon-48.png"
+    }
+  }
+}

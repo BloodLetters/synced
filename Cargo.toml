@@ -1,0 +1,7 @@
+[workspace]
+members = [
+    "crates/synced-core",
+    "crates/synced-cli",
+    "crates/synced-gui",
+]
+resolver = "2"

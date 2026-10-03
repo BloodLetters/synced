@@ -1,0 +1,70 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package
+    Name="synceD"
+    Manufacturer="synceD Team"
+    Version="0.1.0"
+    UpgradeCode="B9F7B5E2-8A2D-4D3C-9A52-8F2D070D13B4"
+    Scope="perMachine">
+
+    <MajorUpgrade DowngradeErrorMessage="A newer version of synceD is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+
+    <Icon Id="AppIcon" SourceFile="installer\synced.ico" />
+    <Property Id="ARPPRODUCTICON" Value="AppIcon" />
+
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="synceD">
+        <Component Id="SyncedGuiExe" Guid="A7E3E723-68D7-4B52-9A4B-91E3B8F8A1C5">
+          <File Id="synced_gui.exe" Source="target\release\synced-gui.exe" KeyPath="yes">
+            <Shortcut
+              Id="ApplicationStartMenuShortcut"
+              Directory="ProgramMenuFolder"
+              Name="synceD"
+              Description="synceD High-Performance Download Manager"
+              WorkingDirectory="INSTALLFOLDER"
+              Icon="AppIcon"
+              Advertise="yes" />
+            <Shortcut
+              Id="ApplicationDesktopShortcut"
+              Directory="DesktopFolder"
+              Name="synceD"
+              Description="synceD High-Performance Download Manager"
+              WorkingDirectory="INSTALLFOLDER"
+              Icon="AppIcon"
+              Advertise="yes" />
+          </File>
+        </Component>
+
+        <Component Id="SyncedCliExe" Guid="C19F37B8-982A-4D7A-B90A-F58D9C0A73E1">
+          <File Id="synced_cli.exe" Source="target\release\synced-cli.exe" KeyPath="yes" />
+        </Component>
+
+        <Component Id="UninstallShortcutComponent" Guid="E63B678C-8D43-4C7D-89C1-72E81DF8E45A">
+          <Shortcut
+            Id="UninstallProductShortcut"
+            Directory="ProgramMenuFolder"
+            Name="Uninstall synceD"
+            Target="[SystemFolder]msiexec.exe"
+            Arguments="/x [ProductCode]"
+            Description="Uninstalls synceD from this computer" />
+          <RegistryValue
+            Root="HKMU"
+            Key="Software\synceD"
+            Name="Installed"
+            Type="integer"
+            Value="1"
+            KeyPath="yes" />
+        </Component>
+      </Directory>
+    </StandardDirectory>
+
+    <StandardDirectory Id="ProgramMenuFolder" />
+    <StandardDirectory Id="DesktopFolder" />
+
+    <Feature Id="MainApplication" Title="synceD" Level="1">
+      <ComponentRef Id="SyncedGuiExe" />
+      <ComponentRef Id="SyncedCliExe" />
+      <ComponentRef Id="UninstallShortcutComponent" />
+    </Feature>
+  </Package>
+</Wix>
