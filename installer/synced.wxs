@@ -1,4 +1,5 @@
-<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
   <Package
     Name="synceD"
     Manufacturer="synceD Team"
@@ -12,31 +13,63 @@
     <Icon Id="AppIcon" SourceFile="installer\synced.ico" />
     <Property Id="ARPPRODUCTICON" Value="AppIcon" />
 
+    <Property Id="AUTOSTART" Value="1" />
+    <WixVariable Id="WixUILicenseRtf" Value="installer\license.rtf" />
+    <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" />
+
     <StandardDirectory Id="ProgramFiles64Folder">
       <Directory Id="INSTALLFOLDER" Name="synceD">
         <Component Id="SyncedGuiExe" Guid="A7E3E723-68D7-4B52-9A4B-91E3B8F8A1C5">
-          <File Id="synced_gui.exe" Source="target\release\synced-gui.exe" KeyPath="yes">
-            <Shortcut
-              Id="ApplicationStartMenuShortcut"
-              Directory="ProgramMenuFolder"
-              Name="synceD"
-              Description="synceD High-Performance Download Manager"
-              WorkingDirectory="INSTALLFOLDER"
-              Icon="AppIcon"
-              Advertise="yes" />
-            <Shortcut
-              Id="ApplicationDesktopShortcut"
-              Directory="DesktopFolder"
-              Name="synceD"
-              Description="synceD High-Performance Download Manager"
-              WorkingDirectory="INSTALLFOLDER"
-              Icon="AppIcon"
-              Advertise="yes" />
-          </File>
+          <File Id="synced_gui.exe" Source="target\release\synced-gui.exe" KeyPath="yes" />
         </Component>
 
         <Component Id="SyncedCliExe" Guid="C19F37B8-982A-4D7A-B90A-F58D9C0A73E1">
           <File Id="synced_cli.exe" Source="target\release\synced-cli.exe" KeyPath="yes" />
+        </Component>
+
+        <Component Id="ApplicationShortcuts" Guid="B81D4C3A-5E29-4A1B-824F-9C1D73E52F1A">
+          <Shortcut
+            Id="ApplicationStartMenuShortcut"
+            Directory="ProgramMenuFolder"
+            Name="synceD"
+            Description="synceD High-Performance Download Manager"
+            Target="[#synced_gui.exe]"
+            WorkingDirectory="INSTALLFOLDER"
+            Icon="AppIcon" />
+          <Shortcut
+            Id="ApplicationDesktopShortcut"
+            Directory="DesktopFolder"
+            Name="synceD"
+            Description="synceD High-Performance Download Manager"
+            Target="[#synced_gui.exe]"
+            WorkingDirectory="INSTALLFOLDER"
+            Icon="AppIcon" />
+          <RegistryValue
+            Root="HKMU"
+            Key="Software\synceD"
+            Name="Shortcuts"
+            Type="integer"
+            Value="1"
+            KeyPath="yes" />
+        </Component>
+
+        <Component Id="AutoStartComponent" Guid="D2A57E88-3B6C-4B9F-99B7-23A4D8D27F52" Condition="AUTOSTART = 1">
+          <Shortcut
+            Id="AppStartupShortcut"
+            Directory="StartupFolder"
+            Name="synceD"
+            Description="synceD Background Startup"
+            Target="[#synced_gui.exe]"
+            Arguments="--minimized"
+            WorkingDirectory="INSTALLFOLDER"
+            Icon="AppIcon" />
+          <RegistryValue
+            Root="HKMU"
+            Key="Software\Microsoft\Windows\CurrentVersion\Run"
+            Name="synceD"
+            Type="string"
+            Value="&quot;[#synced_gui.exe]&quot; --minimized"
+            KeyPath="yes" />
         </Component>
 
         <Component Id="UninstallShortcutComponent" Guid="E63B678C-8D43-4C7D-89C1-72E81DF8E45A">
@@ -50,7 +83,7 @@
           <RegistryValue
             Root="HKMU"
             Key="Software\synceD"
-            Name="Installed"
+            Name="UninstallShortcut"
             Type="integer"
             Value="1"
             KeyPath="yes" />
@@ -60,11 +93,40 @@
 
     <StandardDirectory Id="ProgramMenuFolder" />
     <StandardDirectory Id="DesktopFolder" />
+    <StandardDirectory Id="StartupFolder" />
 
     <Feature Id="MainApplication" Title="synceD" Level="1">
       <ComponentRef Id="SyncedGuiExe" />
+      <ComponentRef Id="ApplicationShortcuts" />
       <ComponentRef Id="SyncedCliExe" />
+      <ComponentRef Id="AutoStartComponent" />
       <ComponentRef Id="UninstallShortcutComponent" />
     </Feature>
+
+    <UI>
+      <Dialog Id="StartupOptionsDlg" Width="370" Height="270" Title="[ProductName] Setup">
+        <Control Id="BannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44" TabSkip="no" Text="WixUI_Bmp_Banner" />
+        <Control Id="Title" Type="Text" X="15" Y="15" Width="200" Height="15" Transparent="yes" NoPrefix="yes" Text="{\WixUI_Font_Title}Additional Options" />
+        <Control Id="Description" Type="Text" X="25" Y="25" Width="280" Height="15" Transparent="yes" NoPrefix="yes" Text="Configure startup preferences for synceD." />
+        <Control Id="BannerLine" Type="Line" X="0" Y="44" Width="370" Height="0" />
+
+        <Control Id="StartupCheckbox" Type="CheckBox" X="20" Y="80" Width="320" Height="18"
+                 Property="AUTOSTART" CheckBoxValue="1" Text="Add synceD to Windows Startup (launch automatically on boot)" />
+
+        <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
+        <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="&amp;Back">
+          <Publish Event="NewDialog" Value="InstallDirDlg" />
+        </Control>
+        <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="&amp;Next">
+          <Publish Event="NewDialog" Value="VerifyReadyDlg" />
+        </Control>
+        <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="Cancel">
+          <Publish Event="SpawnDialog" Value="CancelDlg" />
+        </Control>
+      </Dialog>
+
+      <Publish Dialog="InstallDirDlg" Control="Next" Event="NewDialog" Value="StartupOptionsDlg" Order="10" />
+      <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="StartupOptionsDlg" Order="10" />
+    </UI>
   </Package>
 </Wix>

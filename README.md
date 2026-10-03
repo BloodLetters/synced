@@ -59,7 +59,7 @@ cargo build --release
 ### Windows Installer (.msi)
 
 ```bash
-wix build -arch x64 installer/synced.wxs -o target/release/synceD-Setup.msi
+wix build -arch x64 -ext WixToolset.UI.wixext installer/synced.wxs -o target/release/synceD-Setup.msi
 ```
 
 ## Browser Extensions
@@ -70,4 +70,4 @@ Browser extensions intercept web downloads and send them directly to synceD over
 - **Google Chrome**: Load via `chrome://extensions/` -> [`extension/chrome/`](extension/chrome/manifest.json)
 
 ## License
-Licensed under the MIT License.
+Personal and non-commercial use only. See [LICENSE](LICENSE) for details.

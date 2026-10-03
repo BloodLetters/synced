@@ -18,16 +18,26 @@ fn main() -> eframe::Result<()> {
         height: 256,
     };
 
+    let mut initial_url = None;
+    let mut start_minimized = false;
+    for arg in std::env::args().skip(1) {
+        if arg == "--minimized" || arg == "--startup" || arg == "-m" {
+            start_minimized = true;
+        } else if !arg.starts_with('-') && initial_url.is_none() {
+            initial_url = Some(arg);
+        }
+    }
+
     let native_options = eframe::NativeOptions {
         viewport: ViewportBuilder::default()
             .with_inner_size([880.0, 560.0])
             .with_min_inner_size([720.0, 480.0])
             .with_title("synceD")
-            .with_icon(icon_data),
+            .with_icon(icon_data)
+            .with_visible(!start_minimized),
         ..Default::default()
     };
 
-    let initial_url = std::env::args().nth(1);
     let (link_tx, link_rx) = tokio::sync::mpsc::channel(32);
     synced_gui::server::start_ipc_server(link_tx, 17890);
     let mut link_rx = Some(link_rx);
@@ -47,6 +57,12 @@ fn main() -> eframe::Result<()> {
             let mut style = (*cc.egui_ctx.style()).clone();
             apply_theme(&mut style);
             cc.egui_ctx.set_style(style);
+            #[cfg(target_os = "windows")]
+            if start_minimized {
+                if let Some(h) = hwnd {
+                    synced_gui::tray::win32::hide(h);
+                }
+            }
             Ok(Box::new(SyncedApp::new(initial_url, hwnd, cc.egui_ctx.clone(), link_rx.take())))
         }),
     )

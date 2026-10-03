@@ -26,6 +26,7 @@ jobs:
       - name: Install WiX Toolset
         run: |
           dotnet tool install --global wix --version 4.0.5
+          wix extension add WixToolset.UI.wixext/4.0.5 -g
 
       - name: Run Workspace Tests
         run: |
@@ -37,7 +38,7 @@ jobs:
 
       - name: Build MSI Installer
         run: |
-          wix build -arch x64 installer/synced.wxs -o target/release/synceD-Setup.msi
+          wix build -arch x64 -ext WixToolset.UI.wixext installer/synced.wxs -o target/release/synceD-Setup.msi
 
       - name: Package Distribution Assets
         shell: pwsh
