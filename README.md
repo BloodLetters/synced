@@ -66,7 +66,7 @@ wix build -arch x64 -ext WixToolset.UI.wixext installer/synced.wxs -o target/rel
 
 Browser extensions intercept web downloads and send them directly to synceD over a local IPC endpoint (`127.0.0.1:17890`).
 
-- **Firefox**: Load via `about:debugging` -> [`extension/firefox/`](extension/firefox/manifest.json)
+- **Firefox**: [Firefox Extension](https://addons.mozilla.org/en-US/firefox/addon/synced-downloader-integration/)
 - **Google Chrome**: Load via `chrome://extensions/` -> [`extension/chrome/`](extension/chrome/manifest.json)
 
 ## License
